@@ -1,0 +1,8 @@
+material_key,material_category,density_kg_m3,gwp_per_kg_kgco2e,source
+# BONUS B2 embodied-carbon factors. Every value MUST cite a source; the source
+# string is echoed into the passport Comment column. Expanded during the carbon
+# step. Densities in kg/m3, GWP as cradle-to-gate A1-A3 kgCO2e per kg.
+# Placeholder rows below use widely-cited figures and will be verified/expanded.
+tmt_steel,Reinf,7850,2.363,"Example row 6 (template); TMT Fe-500D, cross-check ICE v3 rebar"
+cement_concrete_nominal,Concrete,2400,,"density typical RMC; GWP to be derived from mix + cement factor"
+cement_opc,Binder,1440,0.90,"ICE v3 (Circular Ecology) OPC CEM I — verify edition"

@@ -1,0 +1,33 @@
+# AMP-GEN — Material Passport extraction pipeline
+# Target: Python 3.11+  (developed/tested on CPython 3.14)
+# Install:  python -m pip install -r requirements.txt
+#
+# NOTE on the scan: BoQ_CBRI_Principals_Residence.pdf has NO text layer
+# (every page is a single scanned image) and the QUANTITIES are handwritten.
+# pdfplumber/pypdf therefore cannot read the item data on their own — the
+# authoritative extraction is done with a vision model (see src/extract.py),
+# and its output is committed to data/boq_items.json so the rest of the
+# pipeline runs fully offline.
+
+# ---- Excel I/O (fill the passport template, read schema/colours) ----
+openpyxl>=3.1.5
+
+# ---- Tabular data / aggregation / JSON-CSV IO ----
+pandas>=2.2
+numpy>=1.26
+
+# ---- PDF handling ----
+pymupdf>=1.24        # render the text-less scan -> page images (extraction + previews)
+pdfplumber>=0.11     # inspect geometry / attempt any text layer / table probing
+pypdf>=4.0           # page count, metadata, lightweight PDF ops
+
+# ---- Vision extraction (dot-matrix print + HANDWRITTEN quantities) ----
+anthropic>=0.40      # Claude Vision extractor: page image -> structured items
+Pillow>=10.0         # image encode/resize for the vision request
+
+# ---- Visualisation (deliverable #5: material-distribution chart) ----
+matplotlib>=3.9
+seaborn>=0.13
+
+# ---- Optional interactive UI to browse the generated passport ----
+streamlit>=1.40

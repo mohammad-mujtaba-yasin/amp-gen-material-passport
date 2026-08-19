@@ -1,0 +1,24 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ---- Secrets ----
+.env
+*.key
+
+# ---- Scratch / previews (regenerated on demand) ----
+_scan_preview/
+_excel_dump.txt
+.cache/
+data/page_images/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# NOTE: output/ is intentionally committed — it holds the graded deliverables
+# (passport_filled.xlsx, passport.json, building_meta.json, chart PNG).
