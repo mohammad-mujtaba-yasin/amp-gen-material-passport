@@ -1,10 +1,11 @@
 """visualize.py — material-distribution chart (deliverable #5).
 
-Produces one PNG summarising how material is distributed across the building.
-Default dimension is Material Category; Discipline and Floor / Section are also
-supported (the brief lets us choose one). Aggregation weight defaults to
-embodied carbon when available, else item count, with the choice shown in the
-title/labels so the chart is self-explanatory.
+Produces PNG charts summarising how material is distributed across the building.
+Uses exact project brand palette:
+  * Primary Dark / Text:      #450C3F
+  * Primary Accent:           #B9D175
+  * Soft Green Accent:        #D9EFBD
+  * Background / Light Tint:  #F5FBDA
 
 Public API
 ----------
@@ -17,6 +18,11 @@ from pathlib import Path
 from typing import Any
 
 from . import config
+
+BRAND_DARK = "#450C3F"
+BRAND_ACCENT = "#B9D175"
+BRAND_SOFT_GREEN = "#D9EFBD"
+BRAND_BG = "#F5FBDA"
 
 
 def _make_chart_matplotlib(
@@ -32,28 +38,57 @@ def _make_chart_matplotlib(
     labels = [k for k, v in sorted_items if v > 0]
     values = [v for k, v in sorted_items if v > 0]
 
-    plt.style.use("ggplot")
     fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
+    fig.patch.set_facecolor(BRAND_BG)
+    ax.set_facecolor(BRAND_BG)
 
-    colors = ["#2b5c8f", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d", "#666666", "#1b9e77"]
+    colors = [BRAND_ACCENT, BRAND_SOFT_GREEN, BRAND_DARK, "#9BB556", "#C4E289", "#67205F"]
     colors = colors[: len(labels)] if len(labels) <= len(colors) else colors * (len(labels) // len(colors) + 1)
 
-    bars = ax.barh(labels[::-1], values[::-1], color=colors[::-1], edgecolor="none", height=0.65)
+    bars = ax.barh(labels[::-1], values[::-1], color=colors[::-1], edgecolor=BRAND_DARK, linewidth=0.8, height=0.65)
 
-    ax.set_title(f"Material Distribution by {by}\n(Weighted by {title_metric})", fontsize=14, fontweight="bold", pad=15)
-    ax.set_xlabel(title_metric, fontsize=11, labelpad=10)
-    ax.set_ylabel(by, fontsize=11, labelpad=10)
+    ax.set_title(
+        f"Material Distribution by {by}\n(Weighted by {title_metric})",
+        fontsize=14,
+        fontweight="bold",
+        color=BRAND_DARK,
+        pad=15,
+    )
+    ax.set_xlabel(title_metric, fontsize=11, fontweight="bold", color=BRAND_DARK, labelpad=10)
+    ax.set_ylabel(by, fontsize=11, fontweight="bold", color=BRAND_DARK, labelpad=10)
+
+    ax.tick_params(colors=BRAND_DARK, labelsize=10)
+    for spine in ax.spines.values():
+        spine.set_color(BRAND_DARK)
+        spine.set_linewidth(1.2)
 
     ax.xaxis.set_major_formatter("{x:,.0f}")
 
     for bar in bars:
         width = bar.get_width()
         val_str = f"{width:,.1f}" if has_carbon else f"{int(width)}"
-        ax.text(width + (max(values) * 0.01), bar.get_y() + bar.get_height() / 2, val_str, ha="left", va="center", fontsize=9, fontweight="bold")
+        ax.text(
+            width + (max(values) * 0.015),
+            bar.get_y() + bar.get_height() / 2,
+            val_str,
+            ha="left",
+            va="center",
+            fontsize=9,
+            fontweight="bold",
+            color=BRAND_DARK,
+        )
 
     plt.tight_layout()
-    fig.savefig(out_path, dpi=300)
+    fig.savefig(out_path, dpi=300, facecolor=BRAND_BG)
     plt.close(fig)
+
+    # Also save to secondary path if different
+    alt_path = out_path.parent / ("visualization.png" if out_path.name == "material_distribution.png" else "material_distribution.png")
+    fig2 = plt.figure(figsize=(10, 6), dpi=300)
+    # Re-save image content
+    out_path_bytes = out_path.read_bytes()
+    alt_path.write_bytes(out_path_bytes)
+
     return out_path
 
 
@@ -64,58 +99,53 @@ def _make_chart_pil(
     has_carbon: bool,
     out_path: Path,
 ) -> Path:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 
     width, height = 1200, 700
-    img = Image.new("RGB", (width, height), color=(248, 249, 250))
+    # RGB color tuple for #F5FBDA: (245, 251, 218)
+    bg_rgb = (245, 251, 218)
+    dark_rgb = (69, 12, 63)
+    accent_rgb = (185, 209, 117)
+    soft_green_rgb = (217, 239, 189)
+
+    img = Image.new("RGB", (width, height), color=bg_rgb)
     draw = ImageDraw.Draw(img)
 
     # Title
     title_text = f"Material Distribution by {by} ({title_metric})"
-    draw.text((60, 40), title_text, fill=(33, 37, 41))
+    draw.text((60, 40), title_text, fill=dark_rgb)
 
     sorted_items = sorted(data.items(), key=lambda x: x[1], reverse=True)
     labels = [k for k, v in sorted_items if v > 0]
     values = [v for k, v in sorted_items if v > 0]
 
-    if not values:
-        img.save(out_path)
-        return out_path
+    if values:
+        max_val = max(values)
+        colors = [accent_rgb, soft_green_rgb, dark_rgb, (155, 181, 86), (196, 226, 137)]
 
-    max_val = max(values)
-    colors = [
-        (43, 92, 143),
-        (217, 95, 2),
-        (117, 112, 179),
-        (231, 41, 138),
-        (102, 166, 30),
-        (230, 171, 2),
-        (166, 118, 29),
-        (102, 102, 102),
-        (27, 158, 119),
-    ]
+        start_y = 120
+        bar_height = 40
+        gap = 20
+        max_bar_w = 680
+        label_x = 60
+        bar_x = 280
 
-    start_y = 120
-    bar_height = 40
-    gap = 20
-    max_bar_w = 700
-    label_x = 60
-    bar_x = 280
+        for i, (lbl, val) in enumerate(zip(labels, values)):
+            y = start_y + i * (bar_height + gap)
+            w = int((val / max_val) * max_bar_w) if max_val > 0 else 0
+            color = colors[i % len(colors)]
 
-    for i, (lbl, val) in enumerate(zip(labels, values)):
-        y = start_y + i * (bar_height + gap)
-        w = int((val / max_val) * max_bar_w) if max_val > 0 else 0
-        color = colors[i % len(colors)]
-
-        # Label
-        draw.text((label_x, y + 10), str(lbl), fill=(50, 50, 50))
-        # Bar
-        draw.rectangle([bar_x, y, bar_x + w, y + bar_height], fill=color)
-        # Value text
-        val_str = f"{val:,.1f}" if has_carbon else f"{int(val)}"
-        draw.text((bar_x + w + 15, y + 10), val_str, fill=(30, 30, 30))
+            draw.text((label_x, y + 10), str(lbl), fill=dark_rgb)
+            draw.rectangle([bar_x, y, bar_x + w, y + bar_height], fill=color, outline=dark_rgb)
+            val_str = f"{val:,.1f}" if has_carbon else f"{int(val)}"
+            draw.text((bar_x + w + 15, y + 10), val_str, fill=dark_rgb)
 
     img.save(out_path)
+
+    # Save copy to visualization.png / material_distribution.png
+    alt_path = out_path.parent / ("visualization.png" if out_path.name == "material_distribution.png" else "material_distribution.png")
+    img.save(alt_path)
+
     return out_path
 
 

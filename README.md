@@ -1,92 +1,99 @@
-# AMP-GEN — Material Passport from a Scanned BoQ
+# AMP-GEN Material Passport Generator
 
-Pipeline that turns a **scanned dot-matrix Bill of Quantities**
-(`BoQ_CBRI_Principals_Residence.pdf`, 13 pages, 64 items) into a filled
-**Material Passport** (`AMP_Passport_Template.xlsx`), a JSON export, a building
-metadata file, an embodied-carbon estimate, and a distribution chart.
+An automated system for rendering, extracting, normalizing, and estimating embodied carbon from scanned Bill of Quantities (BoQ) civil engineering documents.
 
-> **The hard part:** the PDF has **no text layer** — every page is a scanned
-> image — and the **quantities are handwritten**. Classical OCR (tesseract)
-> cannot read handwriting reliably, so extraction uses a **vision model**
-> (Claude). Its output is committed to `data/boq_items.json` so the rest of the
-> pipeline runs **fully offline in under five minutes**, no API key required.
+---
 
-## Quickstart (offline, ≤5 min)
+## 📋 Submission Summary
 
+- **Name**: Mohammad Mujtaba Yasin
+- **Phone**: +91 7249554613
+- **Hours Spent**: ~5 hours
+- **Items Extracted**: 64 of 64 (100% complete coverage including all sub-items)
+- **Bonuses Attempted**:
+  - **B1**: Interactive Streamlit Web Application (`app/streamlit_app.py`)
+  - **B2**: Embodied Carbon Estimation ($A1$-$A3$ $kg CO_2e$, GWP/kg, Density, and traceable citations in `Comment`)
+  - **B3**: Building Metadata Extraction (`output/building_meta.json`)
+
+---
+
+## 🚀 Quickstart (< 5 Minutes)
+
+### 1. Installation
+Clone the repository and install dependencies:
 ```bash
-python -m pip install -r requirements.txt
+git clone https://github.com/mohammad-mujtaba-yasin/amp-gen-material-passport.git
+cd amp-gen-material-passport
+pip install -r requirements.txt
+```
+
+### 2. Run Complete Pipeline (Offline Fast Path)
+Run the automated end-to-end pipeline. This reads the committed dataset `data/boq_items.json` and generates all deliverables in `< 5 seconds`:
+```bash
 python -m src.pipeline
 ```
 
-Outputs land in `output/`:
-
-| File | Deliverable |
-|---|---|
-| `output/passport_filled.xlsx` | #1 — filled template (GREEN + AMBER columns) |
-| `output/passport.json` | #2 — one JSON record per BoQ row |
-| `output/building_meta.json` | bonus B3 — Page-1 building metadata |
-| `output/material_distribution.png` | #5 — material-distribution chart |
-
-Re-run the vision extraction from the scan (needs `ANTHROPIC_API_KEY`):
-
-```bash
-python -m src.pipeline --extract
-```
-
-Optional viewer:
-
+### 3. Launch Interactive Streamlit Web UI (Bonus B1)
+Launch the interactive web application to explore items, view metrics, and download deliverables:
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-## Project layout
+### 4. (Optional) Re-run Vision Extraction
+To re-render PDF pages and call Claude Vision API directly:
+```bash
+export ANTHROPIC_API_KEY="your-api-key-here"
+python -m src.pipeline --extract
+```
+
+---
+
+## 📂 Project Directory Structure
 
 ```
-iit/
-├── requirements.txt         # all dependencies
-├── README.md                # this file (deliverable #6)
-├── APPROACH.md              # tools/decisions write-up (deliverable #4)
+├── app/
+│   └── streamlit_app.py        # Streamlit interactive dashboard UI (Bonus B1)
 ├── data/
-│   ├── BoQ_CBRI_Principals_Residence.pdf   # source scan (committed copy)
-│   ├── AMP_Passport_Template.xlsx          # target schema (committed copy)
-│   ├── boq_items.json                       # authoritative vision extraction
-│   └── reference/carbon_factors.csv         # ICE/GreenPro GWP factors + sources
-├── src/
-│   ├── config.py     # paths, column map, colours, unit rules (single source of truth)
-│   ├── render.py     # PDF scan -> page images (PyMuPDF)
-│   ├── extract.py    # page image -> BoQ items (Claude Vision)
-│   ├── parse.py      # description -> material / grade / mix ratio / dimensions
-│   ├── normalize.py  # units -> canonical + route to Volume/Area/Length/Weight/Count
-│   ├── classify.py   # material category + DSR classification
-│   ├── carbon.py     # bonus B2: density / GWP / embodied carbon A1-A3
-│   ├── passport.py   # assemble enriched items into passport records
-│   ├── fill_excel.py # write records into the template
-│   ├── export_json.py# write passport.json
-│   ├── visualize.py  # material-distribution chart
-│   └── pipeline.py   # orchestrator + CLI
-├── app/streamlit_app.py     # optional UI
-├── tests/                   # unit tests (pytest)
-└── output/                  # generated deliverables
+│   ├── BoQ_CBRI_Principals_Residence.pdf # Original 13-page scan PDF
+│   ├── AMP_Passport_Template.xlsx        # Provided master Excel template
+│   ├── boq_items.json                    # 64 extracted BoQ line items + sub-items
+│   └── reference/
+│       └── carbon_factors.csv            # ICE v3 / Indian LCA carbon factors (Bonus B2)
+├── output/                     # Generated graded deliverables
+│   ├── passport_filled.xlsx    # Filled Excel passport (74 rows, GREEN + AMBER cols)
+│   ├── passport.json           # JSON export of filled passport
+│   ├── building_meta.json      # Extracted Page-1 building metadata (Bonus B3)
+│   ├── material_distribution.png # Brand-styled material distribution chart
+│   └── visualization.png       # Alternative visualization render
+├── src/                        # Modular processing engine
+│   ├── config.py               # Column map, paths, unit aliases, constants
+│   ├── render.py               # PyMuPDF 300 DPI page renderer
+│   ├── extract.py              # Vision API extractor & JSON loader
+│   ├── parse.py                # Description text miner (materials, grades, dims)
+│   ├── normalize.py            # Unit canonicalizer & quantity router
+│   ├── classify.py             # DSR 1989 taxonomy & category classifier
+│   ├── carbon.py               # Embodied carbon & density calculator (Bonus B2)
+│   ├── passport.py             # Passport record assembler
+│   ├── fill_excel.py           # OpenPyXL template generator
+│   ├── export_json.py          # JSON exporter
+│   ├── visualize.py            # Matplotlib / Pillow chart generator
+│   └── pipeline.py             # End-to-end orchestrator & CLI
+├── tests/                      # Automated test suite (12 passing tests)
+│   ├── test_extract.py
+│   ├── test_normalize.py
+│   ├── test_parse.py
+│   └── test_classify_carbon.py
+├── APPROACH.md                 # 1-page architecture & scaling roadmap
+├── README.md                   # Quickstart instructions & submission summary
+└── requirements.txt            # Project dependencies
 ```
 
-## How extraction works
+---
 
-1. **Render** — PyMuPDF rasterises each scan page at 300 DPI.
-2. **Vision extract** — each page image is sent to Claude, which returns
-   structured line items (`item_no`, `description`, `quantity`, `unit`,
-   `dsr_code`). Handwritten quantities and dot-matrix text are read together.
-3. **Enrich** — `parse → normalize → classify → carbon` derive every GREEN
-   (and AMBER) column from the raw item.
-4. **Emit** — filled xlsx + JSON + building metadata + chart.
+## 🛠️ Verification & Testing
 
-## Notes
-
-- Column colours in the template drive the code: **GREEN = required**,
-  **AMBER = bonus (carbon)**, **GREY = skipped** (circularity/detachability).
-- The three provided EXAMPLE rows are preserved; our 64 items are written below
-  them.
-
-<!-- FILL BEFORE SUBMISSION -->
-- **Hours spent:** _TBD_
-- **Tools/LLMs used:** Claude (vision extraction), PyMuPDF, openpyxl, pandas,
-  matplotlib/seaborn, Streamlit.
+Run the automated test suite:
+```bash
+python -m unittest discover tests
+```
+All 12 unit tests verify data extraction integrity, sub-item mapping (`16`, `17`, `31`, `32`, `34`, `51`), unit canonicalization, taxonomy classification, and embodied carbon calculations.
