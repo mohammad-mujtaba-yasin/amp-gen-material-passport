@@ -15,6 +15,7 @@ _scan_preview/
 _excel_dump.txt
 .cache/
 data/page_images/
+scratch/
 
 # ---- OS ----
 .DS_Store
