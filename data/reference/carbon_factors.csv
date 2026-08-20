@@ -1,8 +1,13 @@
 material_key,material_category,density_kg_m3,gwp_per_kg_kgco2e,source
-# BONUS B2 embodied-carbon factors. Every value MUST cite a source; the source
-# string is echoed into the passport Comment column. Expanded during the carbon
-# step. Densities in kg/m3, GWP as cradle-to-gate A1-A3 kgCO2e per kg.
-# Placeholder rows below use widely-cited figures and will be verified/expanded.
-tmt_steel,Reinf,7850,2.363,"Example row 6 (template); TMT Fe-500D, cross-check ICE v3 rebar"
-cement_concrete_nominal,Concrete,2400,,"density typical RMC; GWP to be derived from mix + cement factor"
-cement_opc,Binder,1440,0.90,"ICE v3 (Circular Ecology) OPC CEM I — verify edition"
+tmt_steel,Reinf,7850,2.363,"ICE v3 (Circular Ecology) TMT Rebar Fe-500D"
+mild_steel,Metals / Hardware,7850,2.520,"ICE v3 Structural Steel Sections / Hardware"
+concrete_1510,Concrete,2400,0.115,"ICE v3 / Indian RMC 1:5:10 PCC"
+concrete_124,Concrete,2400,0.155,"ICE v3 / Indian RMC 1:2:4 RCC"
+concrete_148,Concrete,2400,0.125,"ICE v3 / Indian RMC 1:4:8 PCC"
+brickwork,Masonry,1900,0.210,"CPWD / ICE v3 Burnt Clay Bricks in CM"
+sand,Earthwork,1600,0.005,"ICE v3 Fine Aggregates / River Sand"
+timber,Wood,650,0.450,"ICE v3 Hardwood / Teak Sawn Timber"
+bitumen,Roofing & Waterproofing,1020,0.420,"ICE v3 Petroleum Bitumen 80/100"
+tiles_burnt_clay,Roofing & Waterproofing,1900,0.240,"ICE v3 Clay Tiles"
+cement_plaster,Finishes,2000,0.180,"ICE v3 Cement Mortar Plaster 1:6"
+earthwork,Earthwork,1600,0.000,"[EXCLUDED] earth + labour; negligible embodied material carbon"

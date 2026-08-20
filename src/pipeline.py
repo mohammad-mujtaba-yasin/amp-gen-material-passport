@@ -37,15 +37,16 @@ def run(
     (5) render the material-distribution chart.
     """
     items = extract.extract_items() if do_extract else extract.load_items()
+    meta = extract.extract_building_meta()
     records = passport.build_records(items, with_carbon=with_carbon)
 
     filled = fill_excel.write_passport(records)
     js = export_json.write_json(records)
-    meta = extract.extract_building_meta() if do_extract else None
     chart = visualize.make_chart(records, by=chart_by)
 
     return {
         "items": len(items),
+        "records": len(records),
         "filled_xlsx": str(filled),
         "passport_json": str(js),
         "building_meta": str(meta) if meta else None,
